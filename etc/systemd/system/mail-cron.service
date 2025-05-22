@@ -1,0 +1,6 @@
+[Unit]
+Description=Mail cron
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /var/www/mail/cron.php
