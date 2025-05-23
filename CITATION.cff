@@ -1,13 +1,13 @@
 cff-version: 1.2.0
-title: "Qompass AI Ghost"
+title: "ghost"
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Porter"
     given-names: "Matthew A."
     orcid: "https://orcid.org/0000-0002-0302-4812"
     affiliation: "Qompass AI"
-version: "v2025-05-22"
-date-released: "2025-05-22"
+version: "v2025-05-23"
+date-released: "2025-05-23"
 repository-code: "https://github.com/qompassai/ghost"
 license: "Q-CDA-1.0"
 keywords:
@@ -16,7 +16,6 @@ keywords:
   - Healthcare
   - Post-Quantum Cryptography
   - Quantum
-  - deep web
-  - ghost
-  - tor
-abstract: "Qompass AI Ghost Protocol"
+  - opensource
+  - software
+abstract: "Qompass AI Ghost Mail Server"
