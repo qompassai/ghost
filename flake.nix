@@ -57,13 +57,11 @@
               enableUnbound = true;
             };
 
-            security = {
-              dhparams.enable = true;
-              dhparams.params = {
-                nginx = 4096;
-                dovecot = 4096;
-                prosody = 4096;
-              };
+            security.dhparams = {
+            enable = true;
+            nginx.bitSize = 4096;
+            dovecot2.bitSize = 4096;
+            prosody.bitSize = 4096;
             };
 
             services = {
@@ -71,9 +69,13 @@
                 enable = true;
                 package = pkgs.mariadb;
                 initialScript = pkgs.writeText "mysql-init" ''
-                  CREATE DATABASE IF NOT EXISTS mail;
-                  USE mail;
-                  /* Add your SQL schema here */
+                CREATE DATABASE IF NOT EXISTS mail;
+                USE mail;
+                CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) NOT NULL,
+                password_hash VARCHAR(255) NOT NULL
+                );
                 '';
               };
 
@@ -81,29 +83,76 @@
                 enable = true;
                 recommendedTlsSettings = true;
                 recommendedOptimisation = true;
-                virtualHosts."mail.${config.ghost.domain}" = {
-                  root = "/var/www/html";
-                  locations."/".extraConfig = ''
-                    index index.php;
-                  '';
-                };
-              };
-            };
+               services.nginx.virtualHosts."mail.${config.ghost.domain}" = {
+               root = "/var/www/html";
+               locations."/".extraConfig = ''
+               index index.php;
+               '';
+               locations."~ \.php$".extraConfig = ''
+               fastcgi_pass unix:${config.services.phpfpm.pools."www".socket};
+               include ${pkgs.nginx}/conf/fastcgi_params;
+               '';
+               };
+               services.phpfpm.pools."www" = {
+               user = "www-data";
+               group = "www-data";
+               settings = {
+               "listen.owner" = "www-data";
+               "listen.group" = "www-data";
+               };
+               };
 
-            systemd = {
-              tmpfiles.rules = [
-                "d /var/mail/vmail 0755 vmail vmail"
-                "d /var/www/mail 0755 www-data www-data"
-                "d /var/lib/rspamd/dkim 0755 _rspamd _rspamd"
-              ];
+             environment.systemPackages = with pkgs; [
+             bash-completion
+             bind
+             curl
+             git
+             gnupg
+             nano
+             vim
+             wget
+             unzip
+             clamav
+             dovecot
+             openssl
+             postfix
+             rspamd
+             wireguard-tools
+             
+             (php.buildEnv {
+             extensions = { enabled, all }: enabled ++ (with all; [
+             gd gmp imap intl mbstring mysql pspell tidy uuid xml zip
+             ]);
+             })
 
-              services.ghost-init = {
-                description = "Qompass Ghost initialization";
-                wantedBy = [ "multi-user.target" ];
-                serviceConfig = {
-                  Type = "oneshot";
-                  RemainAfterExit = true;
-                  ExecStart = pkgs.writeScript "ghost-init" ''
+    squirrelmail = pkgs.fetchFromGitHub {
+    owner = "RealityRipple";
+    repo = "squirrelmail";
+    rev = "master";
+    sha256 = "0nac19qgplhm08ggp5a2hxbph4vfi2dd24prn38s0yhmvayg1igp";
+    };
+    
+    snappymail = pkgs.fetchFromGitHub {
+    owner = "the-djmaze";
+    repo = "snappymail";
+    rev = "v2.29.0";
+    sha256 = "1wdvs43zs9p0gw2kmkmfwmvxczs6f409rx26f3pc16rff8381smz";
+    };
+
+    systemd = {
+    tmpfiles.rules = [
+    "d /var/mail/vmail 0755 vmail vmail"
+    "d /var/www/mail 0755 www-data www-data"
+    "d /var/lib/rspamd/dkim 0755 _rspamd _rspamd"
+    ];
+
+    services.ghost-init = {
+    description = "Qompass Ghost initialization";
+    wantedBy = [ "multi-user.target" ];
+    erviceConfig = {
+    Type = "oneshot";
+    RemainAfterExit = true;
+    ExecStart = pkgs.writeScript "ghost-init" ''
                     #!/bin/sh
                     ${pkgs.openssl}/bin/openssl ecparam -name secp521r1 -genkey | \
                       ${pkgs.openssl}/bin/openssl pkey -out /etc/dovecot/ecprivkey.pem
