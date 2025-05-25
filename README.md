@@ -35,7 +35,8 @@
 </p>
 
 <h3> Get Started with Nix </h3>
-### In your nix config
+
+
 ```nix
 { config, ... }: {
 imports = [ inputs.ghost.nixosModules.ghost ];
@@ -43,14 +44,15 @@ ghost.enable = true;
 ghost.domain = "qompass.ai";
 }
 ```
----
 ```bash
 nix build .#ghost-mailserver
 ```
+
 ---
 ```bash
 sudo nixos-rebuild switch --flake .#your-hostname
 ```
+
 <details id="Contact">
   <summary><strong>Contact Qompass AI</strong></summary>
 
