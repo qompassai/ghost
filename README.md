@@ -9,6 +9,7 @@
 ![Repository Views](https://komarev.com/ghpvc/?username=qompassai-ghost)
 ![GitHub all releases](https://img.shields.io/github/downloads/qompassai/ghost/total?style=flat-square)
 
+<p align="center">
   <a href="https://www.torproject.org/">
   <img src="https://img.shields.io/badge/Tor-7E4798?style=for-the-badge&logo=torproject&logoColor=white" alt="Tor">
 </a>
@@ -161,7 +162,7 @@ curl -fSsL https://raw.githubusercontent.com/qompassai/ghost/main/scripts/quicks
 **Monero (XMR):**
 
 <div align="center">
-  <img src="https://www.github.com/qompassai/svg/assets/monero-qr.svg" alt="Monero QR Code" width="180">
+  <img src="https://raw.githubusercontent.com/qompassai/svg/main/assets/monero-qr.svg" alt="Monero QR Code" width="180">
 </div>
 
 <div style="margin: 10px 0;">
@@ -193,7 +194,7 @@ curl -fSsL https://raw.githubusercontent.com/qompassai/ghost/main/scripts/quicks
 ## Forward Propagation Algorithm
 
 $$
-y = w\_1x\_1 + w\_2x\_2 + ... + w\_nx\_n + b
+y = w_1x_1 + w_2x_2 + ... + w_nx_n + b
 $$
 
 Where:

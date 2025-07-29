@@ -12,7 +12,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-25_05.url = "github:NixOS/nixpkgs/nixos-25.05";
     blobs = {
-      url = "github:qompassai/ghost/blobs";
+      url = "github:qompassai/blobs";
       flake = false;
     };
     sops-nix.url = "github:Mic92/sops-nix";
