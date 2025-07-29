@@ -1,5 +1,5 @@
 #!/bin/sh
-#/qompassai/ghost/update_translation.sh
+#/qompassai/ghost/scripts/legacy_proxy.sh
 # --------------------------------------
 # Copyright (C) 2025 Qompass AI, All rights reserved
 set -e

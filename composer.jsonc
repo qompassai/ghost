@@ -1,3 +1,5 @@
+// /qompassai/ghost/composer.jsonc
+// Qompass AI Composer Config
 {
 	"require": {
 		"egulias/email-validator": "^3.2",

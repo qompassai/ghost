@@ -9,13 +9,13 @@ workingdir=$(pwd)
 
 DEBIAN_FRONTEND=noninteractive apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get --no-install-recommends install -y apt-transport-tor bash-completion bind9 ca-certificates clamav-daemon clamav-freshclam curl dovecot-imapd dovecot-lmtpd dovecot-managesieved dovecot-mysql dovecot-pop3d dovecot-sieve git gnupg haveged iptables libnginx-mod-http-brotli-filter libsasl2-modules locales locales-all logrotate lsb-release lua-dbi-mysql lua-event lua-unbound mariadb-server mercurial nano nginx openssl patch php8.2-cli php8.2-curl php8.2-fpm php8.2-gd php8.2-gmp php8.2-gnupg php8.2-imap php8.2-intl php8.2-mbstring php8.2-mysql php8.2-pspell php8.2-readline php8.2-tidy php8.2-uuid php8.2-xml php8.2-zip postfix postfix-mysql prosody redis rng-tools5 rspamd tor vim wget unzip wireguard wireguard-tools
-curl -sSL https://github.com/composer/composer/releases/download/2.8.3/composer.phar > /usr/bin/composer
+curl -sSL https://github.com/composer/composer/releases/download/2.8.3/composer.phar >/usr/bin/composer
 chmod +x /usr/bin/composer
 composer self-update
 
 if [ ! -e /etc/mysql/encryption/keyfile.enc ]; then
     mkdir -p /etc/mysql/encryption/
-    openssl rand -hex 128 > /etc/mysql/encryption/keyfile.key
+    openssl rand -hex 128 >/etc/mysql/encryption/keyfile.key
     echo "1;"$(openssl rand -hex 32) | openssl enc -aes-256-cbc -md sha1 -pass file:/etc/mysql/encryption/keyfile.key -out /etc/mysql/encryption/keyfile.enc
 fi
 if [ ! -e /etc/dovecot/ecprivkey.pem ]; then
@@ -24,7 +24,7 @@ if [ ! -e /etc/dovecot/ecprivkey.pem ]; then
     openssl pkey -in /etc/dovecot/ecprivkey.pem -pubout -out /etc/dovecot/ecpubkey.pem
 fi
 if [ ! -e /etc/postfix/qompassai-mail.chain ]; then
-    openssl req -x509 -nodes -days 3650 -newkey ed448 -subj "/" -keyout /etc/postfix/qompassai-mail.key -out /etc/postfix/qompassai-mail.crt && cat /etc/postfix/qompassai-mail.key >> /etc/postfix/qompassai-mail.chain && cat /etc/postfix/qompassai-mail.crt >> /etc/postfix/qompassai-mail.chain
+    openssl req -x509 -nodes -days 3650 -newkey ed448 -subj "/" -keyout /etc/postfix/qompassai-mail.key -out /etc/postfix/qompassai-mail.crt && cat /etc/postfix/qompassai-mail.key >>/etc/postfix/qompassai-mail.chain && cat /etc/postfix/qompassai-mail.crt >>/etc/postfix/qompassai-mail.chain
 fi
 
 for file in /etc/nginx/dh4096.pem /etc/dovecot/dh.pem /etc/prosody/dh4096.pem; do
@@ -33,7 +33,7 @@ for file in /etc/nginx/dh4096.pem /etc/dovecot/dh.pem /etc/prosody/dh4096.pem; d
     fi
 done
 
-id -u vmail > /dev/null 2>&1 || (groupadd -g 5000 -r vmail && useradd -g 5000 -M -r -s /bin/false -u 5000 vmail -d /var/mail/vmail)
+id -u vmail >/dev/null 2>&1 || (groupadd -g 5000 -r vmail && useradd -g 5000 -M -r -s /bin/false -u 5000 vmail -d /var/mail/vmail)
 mkdir -p /var/mail/vmail
 chown vmail: /var/mail/vmail
 
@@ -48,14 +48,13 @@ cp -r composer.json cron.php setup.php www tools locale /var/www/mail/
 cd /var/www/mail/
 composer install --no-dev
 
-
 if [ ! -e /var/www/mail/www/squirrelmail ]; then
     mkdir -p /var/www/mail/www/squirrelmail
     cd /var/www/mail/www/squirrelmail
     git clone https://github.com/RealityRipple/squirrelmail .
     mkdir -p /var/local/squirrelmail/data /var/local/squirrelmail/attach
     chown www-data:www-data -R /var/local/squirrelmail
-    cd $workingdir
+    cd "$workingdir"
     cp squirrelmail_config.php /var/www/mail/www/squirrelmail/config/config.php
 else
     cd /var/www/mail/www/squirrelmail
@@ -70,7 +69,7 @@ if [ ! -e /var/www/mail/www/squirrelmail/plugins/check_quota/ ]; then
     rm check_quota-2.2-1.4.0.tar.gz
     cd $workingdir
     cp squirrelmail_plugin_hooks.php /var/www/mail/www/squirrelmail/config/plugin_hooks.php
-    patch -p1 -d /var/www/html/mail/squirrelmail/plugins/check_quota/ < squirrelmail_check_quota.patch
+    patch -p1 -d /var/www/html/mail/squirrelmail/plugins/check_quota/ <squirrelmail_check_quota.patch
 fi
 
 mkdir -p /var/www/mail/www/snappymail
@@ -83,8 +82,8 @@ mkdir -p /var/local/snappymail
 chown www-data:www-data -R /var/local/snappymail
 if [ ! -e include.php ]; then
     cp _include.php include.php
-    echo "define('APP_DATA_FOLDER_PATH', '/var/local/snappymail/');" >> include.php
-    echo "define('SNAPPYMAIL_UPDATE_PLUGINS', 1);" >> include.php
+    echo "define('APP_DATA_FOLDER_PATH', '/var/local/snappymail/');" >>include.php
+    echo "define('SNAPPYMAIL_UPDATE_PLUGINS', 1);" >>include.php
 fi
 rm -rf /srv/conversejs
 mkdir -p /srv/conversejs

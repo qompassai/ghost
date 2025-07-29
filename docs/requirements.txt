@@ -1,0 +1,10 @@
+# /qompassai/docs/requirements.txt
+# Qompass AI Docs Python Requirements
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
+sphinx ~= 5.3
+sphinx_rtd_theme ~= 1.1
+myst-parser ~= 0.18
+linkify-it-py ~= 2.0
+standard-imghdr
+
