@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/borgbackup.nix
+# Qompass AI Ghost Borg Backup
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
 let
   cfg = config.ghost.borgbackup;

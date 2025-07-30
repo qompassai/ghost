@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/common.nix
+# Qompass AI Ghost Common
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib }:
 let
   cfg = config.ghost;

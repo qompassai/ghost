@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/dovecot.nix
+# Qompass AI Ghost Common
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { options, config, pkgs, lib, ... }:
 with (import ./common.nix { inherit config pkgs lib; });
 let
@@ -100,7 +104,6 @@ let
       scope);
   dovecotModules = [ pkgs.dovecot_pigeonhole ]
     ++ lib.optional cfg.fullTextSearch.enable pkgs.dovecot-fts-flatcurve;
-  # Remove and assume `false` after NixOS 25.05
   haveDovecotModulesOption = options.services.dovecot2 ? "modules"
     && (options.services.dovecot2.modules.visible or true);
   ftsPluginSettings = {
@@ -138,14 +141,8 @@ in
         The recommended solution is to NOT use the stopword filter when
         multiple languages are present in the configuration.
       '');
-
-      # for sieve-test. Shelling it in on demand usually doesnt' work, as it reads
-      # the global config and tries to open shared libraries configured in there,
-      # which are usually not compatible.
       environment.systemPackages = [ pkgs.dovecot_pigeonhole ]
         ++ lib.optionals (!haveDovecotModulesOption) dovecotModules;
-
-      # For compatibility with python imaplib
       environment.etc = lib.mkIf (!haveDovecotModulesOption) {
         "dovecot/modules".source = "/run/current-system/sw/lib/dovecot/modules";
       };
@@ -165,19 +162,16 @@ in
           mailPlugins.globally.enable =
             lib.optionals cfg.fullTextSearch.enable [ "fts" "fts_flatcurve" ];
           protocols = lib.optional cfg.enableManageSieve "sieve";
-
           pluginSettings = {
             sieve =
               "file:${cfg.sieveDirectory}/%{user}/scripts;active=${cfg.sieveDirectory}/%{user}/active.sieve";
             sieve_default = "file:${cfg.sieveDirectory}/%{user}/default.sieve";
             sieve_default_name = "default";
           } // (lib.optionalAttrs cfg.fullTextSearch.enable ftsPluginSettings);
-
           sieve = {
             extensions = [ "fileinto" ];
             scripts.after = builtins.toFile "spam.sieve" ''
               require "fileinto";
-
               if header :is "X-Spam" "Yes" {
                   fileinto "${junkMailboxName}";
                   stop;
@@ -217,7 +211,7 @@ in
                 inet_listener imap {
                   ${
                     if cfg.enableImap then ''
-                      port = 143
+                      port = 1143
                     '' else ''
                       # see https://dovecot.org/pipermail/dovecot/2010-March/047479.html
                       port = 0
@@ -227,7 +221,7 @@ in
                 inet_listener imaps {
                   ${
                     if cfg.enableImapSsl then ''
-                      port = 993
+                      port = 1993
                       ssl = yes
                     '' else ''
                       # see https://dovecot.org/pipermail/dovecot/2010-March/047479.html
@@ -242,7 +236,7 @@ in
                 inet_listener pop3 {
                   ${
                     if cfg.enablePop3 then ''
-                      port = 110
+                      port = 1110
                     '' else ''
                       # see https://dovecot.org/pipermail/dovecot/2010-March/047479.html
                       port = 0
@@ -252,7 +246,7 @@ in
                 inet_listener pop3s {
                   ${
                     if cfg.enablePop3Ssl then ''
-                      port = 995
+                      port = 1995
                       ssl = yes
                     '' else ''
                       # see https://dovecot.org/pipermail/dovecot/2010-March/047479.html
@@ -262,7 +256,6 @@ in
                 }
               }
             ''}
-
             protocol imap {
               mail_max_userip_connections = ${
                 toString cfg.maxConnectionsPerUser

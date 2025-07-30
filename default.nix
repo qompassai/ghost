@@ -116,12 +116,10 @@ in
             default = null;
             example = ''
               require ["fileinto", "mailbox"];
-
               if address :is "from" "gitlab@mg.gitlab.com" {
                 fileinto :create "GitLab";
                 stop;
               }
-
               # This must be the last rule, it will check if list-id is set, and
               # file the message into the Lists folder for further investigation
               elsif header :matches "list-id" "<?*>" {
@@ -329,7 +327,7 @@ in
         https://doc.dovecot.org/configuration_manual/mail_location/#variables
         for details.
       '';
-      example = "/var/lib/dovecot/indices";
+      example = "~/.local/share/dovecot/indices"; # fallback/default
     };
     fullTextSearch = {
       enable = mkEnableOption ''
@@ -520,23 +518,35 @@ in
       '';
     };
     mailDirectory = mkOption {
-      type = types.path;
-      default = "/var/vmail";
+      type = types.str;
+      default = "$XDG_DATA_HOME/mail";
       description = ''
-        Where to store the mail.
+        Rootless/XDG: Where to store mail. Default: $XDG_DATA_HOME/mail (or ~/.local/share/mail if unset).
+        Must be user-writable and per-user for rootless configs.
+        See also https://specifications.freedesktop.org/basedir-spec/latest/ar01s03.html.
       '';
+      example = "$HOME/.local/share/mail";
     };
     useFsLayout = mkOption {
       type = types.bool;
       default = false;
       description = ''
-        Sets whether dovecot should organize mail in subdirectories:
+        Sets whether Dovecot organizes mail in subdirectories (mailbox format):
 
-        - /var/vmail/example.com/user/.folder.subfolder/ (default layout)
-        - /var/vmail/example.com/user/folder/subfolder/  (FS layout)
+        - **Default layout (when false):**
+          `$XDG_DATA_HOME/mail/example.com/user/.folder.subfolder/`
+          (or `~/.local/share/mail/example.com/user/.folder.subfolder/` if XDG_DATA_HOME is unset)
 
-        See https://doc.dovecot.org/main/core/config/mailbox_formats/maildir.html#maildir-mailbox-format for details.
+        - **Filesystem (FS) layout (when true):**
+          `$XDG_DATA_HOME/mail/example.com/user/folder/subfolder/`
+          (or `~/.local/share/mail/example.com/user/folder/subfolder/` if XDG_DATA_HOME is unset)
+
+        This controls whether Dovecot uses dot-based (default) or directory-based ("fs layout") Maildir naming.
+
+        See https://doc.dovecot.org/main/core/config/mailbox_formats/maildir.html#maildir-mailbox-format
+        for further details.
       '';
+      example = true;
     };
     useUTF8FolderNames = mkOption {
       type = types.bool;
@@ -598,7 +608,6 @@ in
         default = "selfsigned";
         description = ''
           The scheme to use for managing TLS certificates:
-
           1. `manual`: you specify locations via {option}`ghost.certificateFile` and
              {option}`ghost.keyFile` and manually copy certificates there.
           2. `selfsigned`: you let the server create new (self-signed) certificates on the fly.
@@ -613,30 +622,31 @@ in
       };
     certificateFile = mkOption {
       type = types.path;
-      example = "/root/ghost.crt";
+      example = "$HOME/.local/share/ghost/ghost.crt";
       description = ''
-        ({option}`ghost.certificateScheme` == `manual`)
-
-        Location of the certificate.
+        (`ghost.certificateScheme == "manual"`)
+        Path to the certificate file.
+        For rootless/XDG: store in $XDG_DATA_HOME/ghost/ghost.crt (defaults to ~/.local/share/ghost/ghost.crt)
       '';
     };
     keyFile = mkOption {
       type = types.path;
-      example = "/root/ghost.key";
+      example = "$HOME/.local/share/ghost/ghost.key";
       description = ''
-        ({option}`ghost.certificateScheme` == `manual`)
-
-        Location of the key file.
+        (`ghost.certificateScheme == "manual"`)
+        Path to the private key file.
+        For rootless/XDG: store in $XDG_DATA_HOME/ghost/ghost.key (defaults to ~/.local/share/ghost/ghost.key)
       '';
     };
     certificateDirectory = mkOption {
       type = types.path;
-      default = "/var/certs";
+      default = "$HOME/.local/share/ghost/certs";
       description = ''
-        ({option}`ghost.certificateScheme` == `selfsigned`)
-        This is the folder where the self-signed certificate will be created. The name is
-        hardcoded to "cert-DOMAIN.pem" and "key-DOMAIN.pem" and the
-        certificate is valid for 10 years.
+        (`ghost.certificateScheme == "selfsigned"`)
+
+        Directory where self-signed certs will be created.
+        Name will be "cert-DOMAIN.pem" and "key-DOMAIN.pem".
+        For XDG/rootless: use $XDG_DATA_HOME/ghost/certs (defaults to ~/.local/share/ghost/certs)
       '';
     };
     acmeCertificateName = mkOption {
@@ -711,11 +721,16 @@ in
       '';
     };
     sieveDirectory = mkOption {
-      type = types.path;
-      default = "/var/sieve";
+      type = types.str;
+      default = "$HOME/.local/share/sieve";
       description = ''
-        Where to store the sieve scripts.
+        Where to store Sieve scripts.
+        **Rootless/XDG default:** $XDG_DATA_HOME/sieve
+        (defaults to ~/.local/share/sieve if $XDG_DATA_HOME is unset)
+        This directory must be user-writable and is safe for multi-user setups.
+        See https://specifications.freedesktop.org/basedir-spec/latest/ar01s03.html.
       '';
+      example = "$HOME/.local/share/sieve";
     };
     virusScanning = mkOption {
       type = types.bool;
@@ -740,32 +755,31 @@ in
       '';
     };
     dkimKeyDirectory = mkOption {
-      type = types.path;
-      default = "/var/dkim";
+      type = types.str;
+      default = "$HOME/.local/share/dkim";
       description = ''
-        The DKIM directory.
+        The directory for storing DKIM private keys and related files.
+        **Rootless/XDG-compliant default:** $XDG_DATA_HOME/dkim
+        (defaults to ~/.local/share/dkim if $XDG_DATA_HOME is unset)
+        This directory must be user-writable. If used with a rootless mail stack,
+        be sure the signing service is configured to read keys from here.
       '';
+      example = "$HOME/.local/share/dkim";
     };
     dkimKeyType = mkOption {
       type = types.enum [ "rsa" "ed25519" ];
-      default = "rsa";
+      default = "ed25519";
       description = ''
-        The key type used for generating DKIM keys. ED25519 was introduced in RFC6376 (2018).
-        If you have already deployed a key with a different type than specified
-        here, then you should use a different selector ({option}`ghost.dkimSelector`). In order to get
-        this package to generate a key with the new type, you will either have to
-        change the selector or delete the old key file.
+        The key type for generating DKIM keys. Ed25519 (RFC8463, 2018) is stronger, more compact, and recommended for modern systems.
+        If you choose ed25519, verify all intended recipients (and your own MTAs) support validating Ed25519 DKIM.
+        If unsure, use RSA with at least 2048 bits.
       '';
     };
     dkimKeyBits = mkOption {
       type = types.int;
-      default = 1024;
+      default = 2048;
       description = ''
-        How many bits in generated DKIM keys. RFC6376 advises minimum 1024-bit keys.
-        If you have already deployed a key with a different number of bits than specified
-        here, then you should use a different selector ({option}`ghost.dkimSelector`). In order to get
-        this package to generate a key with the new number of bits, you will either have to
-        change the selector or delete the old key file.
+        For RSA, number of bits in the key (minimum 1024; modern standard is 2048 or higher).
       '';
     };
     dmarcReporting = {
@@ -955,7 +969,7 @@ in
               localhost
           set httpd port 2812 and use address localhost
               allow localhost
-              allow admin:obwjoawijerfoijsiwfj29jf2f2jd
+              allow admin:SUPERSECRET
           check filesystem root with path /
                 if space usage > 80% then alert
                 if inode usage > 80% then alert
@@ -966,24 +980,24 @@ in
                 if loadavg (1min) > 90 for 15 cycles then alert
                 if loadavg (5min) > 80 for 10 cycles then alert
                 if loadavg (15min) > 70 for 8 cycles then alert
-          check process sshd with pidfile /var/run/sshd.pid
-                start program  "${pkgs.systemd}/bin/systemctl start sshd"
-                stop program  "${pkgs.systemd}/bin/systemctl stop sshd"
+          check process sshd with pidfile /run/user/${USER_ID}/sshd.pid
+                start program  "${pkgs.systemd}/bin/systemctl --user start sshd"
+                stop program   "${pkgs.systemd}/bin/systemctl --user stop sshd"
                 if failed port 22 protocol ssh for 2 cycles then restart
-          check process postfix with pidfile /var/lib/postfix/queue/pid/master.pid
-                start program = "${pkgs.systemd}/bin/systemctl start postfix"
-                stop program = "${pkgs.systemd}/bin/systemctl stop postfix"
+          check process postfix with pidfile /run/user/${USER_ID}/postfix/master.pid
+                start program = "${pkgs.systemd}/bin/systemctl --user start postfix"
+                stop program  = "${pkgs.systemd}/bin/systemctl --user stop postfix"
                 if failed port 2525 protocol smtp for 5 cycles then restart
-          check process dovecot with pidfile /user/run/1000/dovecot2/master.pid
-                start program = "${pkgs.systemd}/bin/systemctl start dovecot2"
-                stop program = "${pkgs.systemd}/bin/systemctl stop dovecot2"
+          check process dovecot with pidfile /run/user/${USER_ID}/dovecot2/master.pid
+                start program = "${pkgs.systemd}/bin/systemctl --user start dovecot2"
+                stop program  = "${pkgs.systemd}/bin/systemctl --user stop dovecot2"
                 if failed host ${cfg.fqdn} port 1993 type tcpssl sslauto protocol imap for 5 cycles then restart
           check process rspamd with matching "rspamd: main process"
-                start program = "${pkgs.systemd}/bin/systemctl start rspamd"
-                stop program = "${pkgs.systemd}/bin/systemctl stop rspamd"
+                start program = "${pkgs.systemd}/bin/systemctl --user start rspamd"
+                stop program  = "${pkgs.systemd}/bin/systemctl --user stop rspamd"
         '';
         defaultText = lib.literalMD
-          "see [source](https://gitlab.com/qompassai/ghost/-/blob/main/default.nix)";
+          "see [source](https://github.com/qompassai/ghost/-/blob/main/default.nix)";
         description = ''
           The configuration used for monitoring via monit.
           Use a mail address that you actively check and set it via 'set alert ...'.
@@ -991,17 +1005,24 @@ in
       };
     };
     borgbackup = {
-      enable = mkEnableOption "backup via borgbackup";
+      enable =
+        mkEnableOption "Enable backup via borgbackup (XDG/rootless support)";
       repoLocation = mkOption {
         type = types.str;
-        default = "/var/borgbackup";
+        default = "${
+            builtins.getEnv "XDG_DATA_HOME" or
+            "${builtins.getEnv "HOME"}/.local/share"
+          }/borgbackup";
         description = ''
-          The location where borg saves the backups.
-          This can be a local path or a remote location such as user@host:/path/to/repo.
-          It is exported and thus available as an environment variable to
-          {option}`ghost.borgbackup.cmdPreexec` and {option}`ghost.borgbackup.cmdPostexec`.
+          For rootless, XDG-compliant use, this defaults to:
+            - $XDG_DATA_HOME/borgbackup  (if \$XDG_DATA_HOME is set)
+            - Otherwise: ~/.local/share/borgbackup
+          Can be overridden with a remote location like user@host:/path/to/repo.
+          Exported as $BORG_REPO to any pre- or post-exec hooks.
         '';
+        example = "$HOME/.local/share/borgbackup";
       };
+
       startAt = mkOption {
         type = types.str;
         default = "hourly";
@@ -1115,13 +1136,20 @@ in
       };
     };
     backup = {
-      enable = mkEnableOption "backup via rsnapshot";
+      enable = mkEnableOption "backup via rsnapshot (XDG/rootless)";
       snapshotRoot = mkOption {
-        type = types.path;
-        default = "/var/rsnapshot";
+        type = types.str;
+        default = "${
+            builtins.getEnv "XDG_DATA_HOME" or
+            "${builtins.getEnv "HOME"}/.local/share"
+          }/rsnapshot";
         description = ''
           The directory where rsnapshot stores the backup.
+
+          XDG/rootless default: $XDG_DATA_HOME/rsnapshot (or ~/.local/share/rsnapshot if unset)
+          Set to a user-writable location, never a system directory like /var for rootless backups.
         '';
+        example = "$HOME/.local/share/rsnapshot";
       };
       cmdPreexec = mkOption {
         type = types.nullOr types.str;

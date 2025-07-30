@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/users.nix
+# Qompass AI Ghost Users
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
 with config.ghost;
 let

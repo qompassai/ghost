@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/postfix.nix
+# Qompass AI Ghost Postfix
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
 with (import ./common.nix { inherit config pkgs lib; });
 let

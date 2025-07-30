@@ -1,35 +1,21 @@
-#  nixos-mailserver: a simple mail server
-#  Copyright (C) 2016-2018  Robin Raymond
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program. If not, see <http://www.gnu.org/licenses/>
-
+# /qompassai/ghost/ghost/systemd.nix
+# Qompass AI Ghost Systemd
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
-
 let
-  cfg = config.mailserver;
+  cfg = config.ghost;
   certificatesDeps =
     if cfg.certificateScheme == "manual" then
       []
     else if cfg.certificateScheme == "selfsigned" then
-      [ "mailserver-selfsigned-certificate.service" ]
+      [ "ghost-selfsigned-certificate.service" ]
     else
       [ "acme-finished-${cfg.fqdn}.target" ];
 in
 {
   config = with cfg; lib.mkIf enable {
-    # Create self signed certificate
-    systemd.services.mailserver-selfsigned-certificate = lib.mkIf (cfg.certificateScheme == "selfsigned") {
+    systemd.services.ghost-selfsigned-certificate = lib.mkIf (cfg.certificateScheme == "selfsigned") {
       after = [ "local-fs.target" ];
       script = ''
         # Create certificates if they do not exist yet
@@ -51,8 +37,6 @@ in
         PrivateTmp = true;
       };
     };
-
-    # Create maildir folder before dovecot startup
     systemd.services.dovecot2 = {
       wants = certificatesDeps;
       after = certificatesDeps;
@@ -72,7 +56,6 @@ in
       '';
     };
 
-    # Postfix requires dovecot lmtp socket, dovecot auth socket and certificate to work
     systemd.services.postfix = {
       wants = certificatesDeps;
       after = [ "dovecot2.service" ]

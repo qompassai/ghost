@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/networking.nix
+# Qompass AI Ghost Networking
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, lib, ... }:
 
 let cfg = config.ghost;

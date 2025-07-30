@@ -1,3 +1,8 @@
+# /qompassai/ghost/ghost/clamav.nix
+# Qompass AI Ghost Clamav
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
+
 { config, lib, ... }:
 
 let

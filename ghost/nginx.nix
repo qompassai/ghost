@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/nginx.nix
+# Qompass AI Ghost Nginx
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
 with (import ./common.nix { inherit config lib pkgs; });
 let

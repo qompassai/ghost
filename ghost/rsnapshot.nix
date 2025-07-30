@@ -1,3 +1,7 @@
+# /qompassai/ghost/ghost/rsnapshot.nix
+# Qompass AI Ghost RSnapshot
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
 { config, pkgs, lib, ... }:
 with lib;
 let
