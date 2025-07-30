@@ -23,34 +23,68 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
-  outputs = { self, blobs, git-hooks, nixpkgs, nixpkgs-25_05, sops-nix, flake-utils, ... }:
+  outputs =
+    { self
+    , blobs
+    , git-hooks
+    , nixpkgs
+    , nixpkgs-25_05
+    , sops-nix
+    , flake-utils
+    , ...
+    }:
     flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs { inherit system; };
+      system = "x86_64-linux";
       lib = pkgs.lib;
       releases = [
-        { name = "unstable"; nixpkgs = nixpkgs; pkgs = nixpkgs.legacyPackages.${system}; }
-        { name = "25.05"; nixpkgs = nixpkgs-25_05; pkgs = nixpkgs-25_05.legacyPackages.${system}; }
+        {
+          name = "unstable";
+          nixpkgs = nixpkgs;
+          pkgs = nixpkgs.legacyPackages.${system};
+        }
+        {
+          name = "25.05";
+          nixpkgs = nixpkgs-25_05;
+          pkgs = nixpkgs-25_05.legacyPackages.${system};
+        }
       ];
       testNames = [ "clamav" "external" "internal" "ldap" "multiple" ];
-      genTest = testName: release: let
-        pkgs = release.pkgs;
-        nixos-lib = import (release.nixpkgs + "/nixos/lib") { inherit (pkgs) lib; };
-      in {
-        name = "${testName}-${builtins.replaceStrings ["."] ["_"] release.name}";
-        value = nixos-lib.runTest {
-          hostPkgs = pkgs;
-          imports = [ ./tests/${testName}.nix ];
-          _module.args = { inherit blobs; };
-          extraBaseModules.imports = [ ./default.nix ];
+      genTest = testName: release:
+        let
+          pkgs = release.pkgs;
+          nixos-lib =
+            import (release.nixpkgs + "/nixos/lib") { inherit (pkgs) lib; };
+        in
+        {
+          name = "${testName}-${
+                builtins.replaceStrings [ "." ] [ "_" ] release.name
+              }";
+          value = nixos-lib.runTest {
+            hostPkgs = pkgs;
+            imports = [ ./tests/${testName}.nix ];
+            _module.args = { inherit blobs; };
+            extraBaseModules.imports = [ ./default.nix ];
+          };
         };
-      };
-      allTests = lib.listToAttrs (lib.flatten (map (t: map (r: genTest t r) releases) testNames));
+      allTests = lib.listToAttrs
+        (lib.flatten (map (t: map (r: genTest t r) releases) testNames));
       documentation = pkgs.stdenv.mkDerivation {
         name = "documentation";
-        src = lib.sourceByRegex ./docs ["logo\\.png" "conf\\.py" "Makefile" ".*\\.rst"];
+        src = lib.sourceByRegex ./docs [
+          "logo\\.png"
+          "conf\\.py"
+          "Makefile"
+          ".*\\.rst"
+        ];
         buildInputs = [
-          (pkgs.python3.withPackages (p: [ p.sphinx p.sphinx_rtd_theme p.myst-parser p.linkify-it-py ]))
+          (pkgs.python3.withPackages (p: [
+            p.sphinx
+            p.sphinx_rtd_theme
+            p.myst-parser
+            p.linkify-it-py
+          ]))
         ];
         buildPhase = ''
           unset SOURCE_DATE_EPOCH
@@ -61,39 +95,42 @@
         '';
       };
       ghostModule = import ./.;
-      optionsDoc = let
-        eval = lib.evalModules {
-          modules = [
-            ghostModule
-            {
-              _module.check = false;
-              ghost = {
-                fqdn = "mx.example.com";
-                domains = [ "example.com" ];
-                dmarcReporting = {
-                  organizationName = "Example Corp";
-                  domain = "example.com";
+      optionsDoc =
+        let
+          eval = lib.evalModules {
+            modules = [
+              ghostModule
+              {
+                _module.check = false;
+                ghost = {
+                  fqdn = "mx.example.com";
+                  domains = [ "example.com" ];
+                  dmarcReporting = {
+                    organizationName = "Example Corp";
+                    domain = "example.com";
+                  };
                 };
-              };
-            }
-          ];
-        };
-        options = builtins.toFile "options.json" (builtins.toJSON
-          (lib.filter (opt: opt.visible && !opt.internal && lib.head opt.loc == "ghost")
+              }
+            ];
+          };
+          options = builtins.toFile "options.json" (builtins.toJSON (lib.filter
+            (opt: opt.visible && !opt.internal && lib.head opt.loc == "ghost")
             (lib.optionAttrSetToDocList eval.options)));
-      in pkgs.runCommand "options.md" { buildInputs = [ pkgs.python3Minimal ]; } ''
-        echo "Generating options.md from ${options}"
-        python ${./scripts/generate-options.py} ${options} > $out
-        echo $out
-      '';
+        in
+        pkgs.runCommand "options.md"
+          {
+            buildInputs = [ pkgs.python3Minimal ];
+          } ''
+          echo "Generating options.md from ${options}"
+          python ${./scripts/generate-options.py} ${options} > $out
+          echo $out
+        '';
       pre-commit = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
           markdownlint = {
             enable = true;
-            settings.configuration = {
-              MD013 = false;
-            };
+            settings.configuration = { MD013 = false; };
           };
           rstcheck = {
             enable = true;
@@ -105,10 +142,7 @@
           pyright.enable = true;
           ruff = {
             enable = true;
-            args = [
-              "--extend-select"
-              "I"
-            ];
+            args = [ "--extend-select" "I" ];
           };
           ruff-format.enable = true;
           shellcheck.enable = true;
@@ -131,17 +165,12 @@
         inherit documentation;
         inherit (self.checks.${system}) pre-commit;
       };
-      checks.${system} = allTests // {
-        pre-commit = pre-commit;
-      };
-      packages.${system} = {
-        inherit optionsDoc documentation;
-      };
+      checks.${system} = allTests // { pre-commit = pre-commit; };
+      packages.${system} = { inherit optionsDoc documentation; };
       devShells.${system}.default = pkgs.mkShellNoCC {
         inputsFrom = [ documentation ];
-        packages = with pkgs; [
-          glab
-        ] ++ self.checks.${system}.pre-commit.enabledPackages;
+        packages = with pkgs;
+          [ glab ] ++ self.checks.${system}.pre-commit.enabledPackages;
         shellHook = self.checks.${system}.pre-commit.shellHook;
       };
       devShell.${system} = self.devShells.${system}.default;

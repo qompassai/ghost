@@ -5,4 +5,6 @@
 /.forge/
 composer.lock
 vendor/
-*~
+result
+.direnv
+.pre-commit-config.yaml

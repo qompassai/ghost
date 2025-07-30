@@ -1,0 +1,58 @@
+# ghost.svg
+# Qompass AI - [Add description here]
+# Copyright (C) 2025 Qompass AI, All rights reserved
+# ----------------------------------------
+<svg
+  viewBox="0 0 128 128"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-label="Ghost AI Logo"
+>
+  <style>
+    .ghost-wave {
+      stroke: var(--ghost-accent, #3997e7);
+      stroke-width: 2;
+      fill: none;
+    }
+    .ghost-body {
+      fill: var(--ghost-sail, #ffffff);
+      stroke: var(--ghost-line, #3068a4);
+      stroke-width: 2;
+    }
+    .ghost-eye {
+      fill: var(--ghost-eye, #31618e);
+    }
+    .compass {
+      stroke: var(--ghost-compass, #80bfff);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+    }
+    @media (prefers-color-scheme: dark) {
+      .ghost-body { fill: var(--ghost-sail-dark, #232d37); stroke: var(--ghost-line-dark, #7bcfff);}
+      .ghost-eye { fill: var(--ghost-eye-dark, #fff);}
+      .compass { stroke: var(--ghost-compass-dark, #6793c8);}
+      .ghost-wave { stroke: var(--ghost-accent-dark, #7bcfff);}
+    }
+  </style>
+  <g class="compass">
+    <line x1="64" y1="12" x2="64" y2="24"/>
+    <line x1="64" y1="104" x2="64" y2="116"/>
+    <line x1="12" y1="64" x2="24" y2="64"/>
+    <line x1="104" y1="64" x2="116" y2="64"/>
+    <line x1="32" y1="32" x2="40" y2="40"/>
+    <line x1="96" y1="32" x2="88" y2="40"/>
+    <line x1="32" y1="96" x2="40" y2="88"/>
+    <line x1="96" y1="96" x2="88" y2="88"/>
+  </g>
+  <path
+    class="ghost-body"
+    d="M44,95 Q42,51 64,36 Q86,51 84,95 Q81,84 71,90 Q68,92 64,91 Q60,92 57,90 Q47,84 44,95 Z"
+  />
+  <!-- Two ghostly eyes -->
+  <ellipse class="ghost-eye" cx="58" cy="72" rx="2" ry="3"/>
+  <ellipse class="ghost-eye" cx="70" cy="72" rx="2" ry="3"/>
+  <!-- Subtle waves below the ghost -->
+  <path class="ghost-wave" d="M38,105 Q50,110 64,106 Q78,110 90,105"/>
+  <path class="ghost-wave" d="M48,112 Q64,116 80,112"/>
+</svg>
+

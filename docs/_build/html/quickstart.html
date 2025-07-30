@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qompass AI Quickstart &mdash; Qompass AI Ghost  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9bcbadda"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Nix Flakes" href="flake.html" />
+    <link rel="prev" title="Welcome to Qompass AI Ghost documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Qompass AI Ghost
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Qompass AI Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup-dns-a-aaaa-records-for-server">Setup DNS A/AAAA records for server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-the-server">Setup the server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup-all-other-dns-requirements">Setup all other DNS requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#set-rdns-reverse-dns-entry-for-server">Set rDNS (reverse DNS) entry for server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-a-mx-record">Set a <code class="docutils literal notranslate"><span class="pre">MX</span></code> record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-a-spf-record">Set a <code class="docutils literal notranslate"><span class="pre">SPF</span></code> record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-dkim-signature">Set <code class="docutils literal notranslate"><span class="pre">DKIM</span></code> signature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-a-dmarc-record">Set a <code class="docutils literal notranslate"><span class="pre">DMARC</span></code> record</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#test-your-setup">Test your Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="flake.html">Nix Flakes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Qompass AI Ghost</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Qompass AI Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="qompass-ai-quickstart">
+<h1>Qompass AI Quickstart<a class="headerlink" href="#qompass-ai-quickstart" title="Link to this heading"></a></h1>
+<p>Mail servers can be a tricky thing to set up. This guide is supposed to
+run you through the most important steps to achieve a 10/10 score on
+<a class="reference external" href="https://mail-tester.com">https://mail-tester.com</a>.</p>
+<p>What you need is:</p>
+<ul class="simple">
+<li><p>a server running NixOS with a public IP</p></li>
+<li><p>a domain name.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the following, we consider a server with the public IP <code class="docutils literal notranslate"><span class="pre">1.2.3.4</span></code>
+and the domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code>.</p>
+</div>
+<p>First, we will set the minimum DNS configuration to be able to deploy
+an up and running mail server. Once the server is deployed, we could
+then set all DNS entries required to send and receive mails on this
+server.</p>
+<section id="setup-dns-a-aaaa-records-for-server">
+<h2>Setup DNS A/AAAA records for server<a class="headerlink" href="#setup-dns-a-aaaa-records-for-server" title="Link to this heading"></a></h2>
+<p>Add DNS records to the domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code> with the following
+entries</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name (Subdomain)</p></th>
+<th class="head"><p>TTL</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mail.example.com</span></code></p></td>
+<td><p>10800</p></td>
+<td><p>A</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.2.3.4</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">mail.example.com</span></code></p></td>
+<td><p>10800</p></td>
+<td><p>AAAA</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">2001::1</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>If your server does not have an IPv6 address, you must skip the <cite>AAAA</cite> record.</p>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host -t A mail.example.com&quot;
+mail.example.com has address 1.2.3.4
+
+$ nix-shell -p bind --command &quot;host -t AAAA mail.example.com&quot;
+mail.example.com has address 2001::1
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated. This
+DNS entry is required for the Let's Encrypt certificate generation
+(which is used in the below configuration example).</p>
+</section>
+<section id="setup-the-server">
+<h2>Setup the server<a class="headerlink" href="#setup-the-server" title="Link to this heading"></a></h2>
+<p>The following describes a server setup that is fairly complete. Even
+though there are more possible options (see the <a class="reference external" href="options.html">Qompass AI Ghost
+options documentation</a>), these should be the most
+common ones.</p>
+<div class="highlight-nix notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> config<span class="p">,</span> pkgs<span class="p">,</span> <span class="o">...</span> <span class="p">}:</span> <span class="p">{</span>
+  <span class="ss">imports</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="nb">builtins</span><span class="o">.</span>fetchTarball <span class="p">{</span>
+      <span class="c1"># Pick a release version you are interested in and set its hash, e.g.</span>
+      <span class="ss">url</span> <span class="o">=</span> <span class="s2">&quot;https://github.com/qompassai/ghost/-/archive/nixos-25.05/ghost-25.05.tar.gz&quot;</span><span class="p">;</span>
+      <span class="c1"># To get the sha256 of the ghost tarball, we can use the nix-prefetch-url command:</span>
+      <span class="c1"># release=&quot;nixos-25.05&quot;; nix-prefetch-url &quot;https://github.com/qompassai/ghost/-/archive/${release}/ghost-${release}.tar.gz&quot; --unpack</span>
+      <span class="ss">sha256</span> <span class="o">=</span> <span class="s2">&quot;0000000000000000000000000000000000000000000000000000&quot;</span><span class="p">;</span>
+    <span class="p">})</span>
+  <span class="p">];</span>
+
+  <span class="ss">ghost</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">enable</span> <span class="o">=</span> <span class="no">true</span><span class="p">;</span>
+    <span class="ss">fqdn</span> <span class="o">=</span> <span class="s2">&quot;mail.example.com&quot;</span><span class="p">;</span>
+    <span class="ss">domains</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;example.com&quot;</span> <span class="p">];</span>
+
+    <span class="c1"># A list of all login accounts. To create the password hashes, use</span>
+    <span class="c1"># nix-shell -p mkpasswd --run &#39;mkpasswd -sm bcrypt&#39;</span>
+    <span class="ss">loginAccounts</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;user1@example.com&quot;</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="ss">hashedPasswordFile</span> <span class="o">=</span> <span class="s2">&quot;/a/file/containing/a/hashed/password&quot;</span><span class="p">;</span>
+        <span class="ss">aliases</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;postmaster@example.com&quot;</span><span class="p">];</span>
+      <span class="p">};</span>
+      <span class="s2">&quot;user2@example.com&quot;</span> <span class="o">=</span> <span class="p">{</span> <span class="o">...</span> <span class="p">};</span>
+    <span class="p">};</span>
+
+    <span class="c1"># Use Let&#39;s Encrypt certificates. Note that this needs to set up a stripped</span>
+    <span class="c1"># down nginx and opens port 8080.</span>
+    <span class="ss">certificateScheme</span> <span class="o">=</span> <span class="s2">&quot;acme-nginx&quot;</span><span class="p">;</span>
+  <span class="p">};</span>
+  security<span class="o">.</span>acme<span class="o">.</span><span class="ss">acceptTerms</span> <span class="o">=</span> <span class="no">true</span><span class="p">;</span>
+  security<span class="o">.</span>acme<span class="o">.</span>defaults<span class="o">.</span><span class="ss">email</span> <span class="o">=</span> <span class="s2">&quot;security@example.com&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After a <code class="docutils literal notranslate"><span class="pre">nixos-rebuild</span> <span class="pre">switch</span></code> your server should be running all
+mail components.</p>
+</section>
+<section id="setup-all-other-dns-requirements">
+<h2>Setup all other DNS requirements<a class="headerlink" href="#setup-all-other-dns-requirements" title="Link to this heading"></a></h2>
+<section id="set-rdns-reverse-dns-entry-for-server">
+<h3>Set rDNS (reverse DNS) entry for server<a class="headerlink" href="#set-rdns-reverse-dns-entry-for-server" title="Link to this heading"></a></h3>
+<p>Wherever you have rented your server, you should be able to set reverse
+DNS entries for the IP’s you own:</p>
+<ul class="simple">
+<li><p>Add an entry resolving IPv4 address <code class="docutils literal notranslate"><span class="pre">1.2.3.4</span></code> to <code class="docutils literal notranslate"><span class="pre">mail.example.com</span></code>.</p></li>
+<li><p>Add an entry resolving IPv6 <code class="docutils literal notranslate"><span class="pre">2001::1</span></code> to <code class="docutils literal notranslate"><span class="pre">mail.example.com</span></code>. Again, this
+must be skipped if your server does not have an IPv6 address.</p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>We don't recommend setting up a mail server if you are not able to
+set a reverse DNS on your public IP because sent emails would be
+mostly marked as spam. Note that many residential ISP providers
+don't allow you to set a reverse DNS entry.</p>
+</div>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host 1.2.3.4&quot;
+4.3.2.1.in-addr.arpa domain name pointer mail.example.com.
+
+$ nix-shell -p bind --command &quot;host 2001::1&quot;
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.0.2.ip6.arpa domain name pointer mail.example.com.
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated.</p>
+</section>
+<section id="set-a-mx-record">
+<h3>Set a <code class="docutils literal notranslate"><span class="pre">MX</span></code> record<a class="headerlink" href="#set-a-mx-record" title="Link to this heading"></a></h3>
+<p>Add a <code class="docutils literal notranslate"><span class="pre">MX</span></code> record to the domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code>.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name (Subdomain)</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Priority</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>example.com</p></td>
+<td><p>MX</p></td>
+<td><p>10</p></td>
+<td><p>mail.example.com</p></td>
+</tr>
+</tbody>
+</table>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host -t mx example.com&quot;
+example.com mail is handled by 10 mail.example.com.
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated.</p>
+</section>
+<section id="set-a-spf-record">
+<h3>Set a <code class="docutils literal notranslate"><span class="pre">SPF</span></code> record<a class="headerlink" href="#set-a-spf-record" title="Link to this heading"></a></h3>
+<p>Add a <a class="reference external" href="https://en.wikipedia.org/wiki/Sender_Policy_Framework">SPF</a>
+record to the domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code>.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name (Subdomain)</p></th>
+<th class="head"><p>TTL</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>example.com</p></td>
+<td><p>10800</p></td>
+<td><p>TXT</p></td>
+<td><p><cite>v=spf1 a:mail.example.com -all</cite></p></td>
+</tr>
+</tbody>
+</table>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host -t TXT example.com&quot;
+example.com descriptive text &quot;v=spf1 a:mail.example.com -all&quot;
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated.</p>
+</section>
+<section id="set-dkim-signature">
+<h3>Set <code class="docutils literal notranslate"><span class="pre">DKIM</span></code> signature<a class="headerlink" href="#set-dkim-signature" title="Link to this heading"></a></h3>
+<p>On your server, the <code class="docutils literal notranslate"><span class="pre">rspamd</span></code> systemd service generated a file
+containing your DKIM public key in the file
+<code class="docutils literal notranslate"><span class="pre">/var/dkim/example.com.mail.txt</span></code>. The content of this file looks
+like</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mail</span><span class="o">.</span><span class="n">_domainkey</span>      <span class="n">IN</span>      <span class="n">TXT</span>     <span class="p">(</span> <span class="s2">&quot;v=DKIM1; k=rsa; &quot;</span>
+   <span class="s2">&quot;p=&lt;really-long-key&gt;&quot;</span> <span class="p">)</span>  <span class="p">;</span> <span class="o">-----</span> <span class="n">DKIM</span> <span class="n">key</span> <span class="n">mail</span> <span class="k">for</span> <span class="n">nixos</span><span class="o">.</span><span class="n">org</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">really-long-key</span></code> is your public key.</p>
+<p>Based on the content of this file, we can add a <code class="docutils literal notranslate"><span class="pre">DKIM</span></code> record to the
+domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code>.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name (Subdomain)</p></th>
+<th class="head"><p>TTL</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mail._domainkey.example.com</p></td>
+<td><p>10800</p></td>
+<td><p>TXT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">v=DKIM1;</span> <span class="pre">k=rsa;</span> <span class="pre">s=email;</span> <span class="pre">p=&lt;really-long-key&gt;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host -t txt mail._domainkey.example.com&quot;
+mail._domainkey.example.com descriptive text &quot;v=DKIM1;p=&lt;really-long-key&gt;&quot;
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated.</p>
+</section>
+<section id="set-a-dmarc-record">
+<h3>Set a <code class="docutils literal notranslate"><span class="pre">DMARC</span></code> record<a class="headerlink" href="#set-a-dmarc-record" title="Link to this heading"></a></h3>
+<p>Add a <code class="docutils literal notranslate"><span class="pre">DMARC</span></code> record to the domain <code class="docutils literal notranslate"><span class="pre">example.com</span></code>.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name (Subdomain)</p></th>
+<th class="head"><p>TTL</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>_dmarc.example.com</p></td>
+<td><p>10800</p></td>
+<td><p>TXT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">v=DMARC1;</span> <span class="pre">p=none</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>You can check this with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nix-shell -p bind --command &quot;host -t TXT _dmarc.example.com&quot;
+_dmarc.example.com descriptive text &quot;v=DMARC1; p=none&quot;
+</pre></div>
+</div>
+<p>Note that it can take a while until a DNS entry is propagated.</p>
+</section>
+</section>
+<section id="test-your-setup">
+<h2>Test your Setup<a class="headerlink" href="#test-your-setup" title="Link to this heading"></a></h2>
+<p>Write an email to your aunt (who has been waiting for your reply far too
+long), and sign up for some of the finest newsletters the Internet has.
+Maybe you want to sign up for the <a class="reference external" href="https://www.freelists.org/list/snm">SNM Announcement
+List</a>?</p>
+<p>Besides that, you can send an email to
+<a class="reference external" href="https://www.mail-tester.com/">mail-tester.com</a> and see how you
+score, and let <a class="reference external" href="http://mxtoolbox.com/">mxtoolbox.com</a> take a look at
+your setup, but if you followed the steps closely then everything should
+be awesome!</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Qompass AI Ghost documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="flake.html" class="btn btn-neutral float-right" title="Nix Flakes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright (C) 2025 Qompass AI, All rights reserved.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
