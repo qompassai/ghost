@@ -35,9 +35,9 @@
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = import nixpkgs { inherit system; };
+      lib = nixpkgs.lib;
       system = "x86_64-linux";
-      lib = pkgs.lib;
+      pkgs = nixpkgs.legacyPackages.${system};
       releases = [
         {
           name = "unstable";
@@ -69,32 +69,8 @@
           };
         };
       allTests = lib.listToAttrs
-        (lib.flatten (map (t: map (r: genTest t r) releases) testNames));
-      documentation = pkgs.stdenv.mkDerivation {
-        name = "documentation";
-        src = lib.sourceByRegex ./docs [
-          "logo\\.png"
-          "conf\\.py"
-          "Makefile"
-          ".*\\.rst"
-        ];
-        buildInputs = [
-          (pkgs.python3.withPackages (p: [
-            p.sphinx
-            p.sphinx_rtd_theme
-            p.myst-parser
-            p.linkify-it-py
-          ]))
-        ];
-        buildPhase = ''
-          unset SOURCE_DATE_EPOCH
-          make html
-        '';
-        installPhase = ''
-          cp -Tr _build/html $out
-        '';
-      };
-      ghostModule = import ./.;
+          (lib.flatten (map (t: map (r: genTest t r) releases) testNames));
+           ghostModule = import ./.;
       optionsDoc =
         let
           eval = lib.evalModules {
@@ -125,6 +101,31 @@
           python ${./scripts/generate-options.py} ${options} > $out
           echo $out
         '';
+      documentation = pkgs.stdenv.mkDerivation {
+        name = "documentation";
+        src = lib.sourceByRegex ./docs [
+          "logo\\.png"
+          "conf\\.py"
+          "Makefile"
+          ".*\\.rst"
+        ];
+        buildInputs = [
+          (pkgs.python3.withPackages (p: [
+            p.sphinx
+            p.sphinx_rtd_theme
+            p.myst-parser
+            p.linkify-it-py
+          ]))
+        ];
+        buildPhase = ''
+            cp ${optionsDoc} options.md
+          unset SOURCE_DATE_EPOCH
+          make html
+        '';
+        installPhase = ''
+          cp -Tr _build/html $out
+        '';
+      };
       pre-commit = git-hooks.lib.${system}.run {
         src = ./.;
         hooks = {
@@ -240,3 +241,5 @@
       };
     });
 }
+
+
