@@ -11,23 +11,23 @@ the following minimal ``flake.nix`` as an example:
 
 .. code:: nix
 
-  {
-     description = "NixOS configuration";
-     inputs.ghost.url = "github:QompassAI/ghost/nixos-20.09";
-     outputs = {self, nixpkgs, ghost}: {
-       nixosConfigurations = {
-         hostname = nixpkgs.lib.nixosSystem {
-           system = "x86_64-linux";
-           modules = [
-             ghost.nixosModule
-             {
-               ghost = {
-                 enable = true;
-                 # ...
-               };
-         }
-           ];
-       };
+{
+  description = "NixOS configuration";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.ghost.url = "github:QompassAI/ghost/nixos-20.09";
+  outputs = { self, nixpkgs, ghost }:
+    {
+      nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ghost.nixosModule
+          {
+            ghost = {
+              enable = true;
+            };
+          }
+        ];
       };
     };
-  }
+}
+
