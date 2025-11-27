@@ -1,0 +1,10 @@
+# /qompassai/ghost/.gitignore
+# Qompass AI Ghost Gitignore
+# Copyright (C) 2025 Qompass AI, All rights reserved
+####################################################
+/.forge/
+composer.lock
+vendor/
+result
+.direnv
+.pre-commit-config.yaml

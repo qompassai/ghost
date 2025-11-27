@@ -1,0 +1,33 @@
+.. flake.rst
+.. Qompass AI Ghost Flake Docs
+.. Copyright (C) 2025 Qompass AI, All rights reserved
+.. ----------------------------------------
+
+Nix Flakes
+==========
+
+If you're using `flakes <https://wiki.nixos.org/wiki/Flakes>`__, you can use
+the following minimal ``flake.nix`` as an example:
+
+.. code:: nix
+
+{
+  description = "NixOS configuration";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.ghost.url = "github:QompassAI/ghost/nixos-20.09";
+  outputs = { self, nixpkgs, ghost }:
+    {
+      nixosConfigurations.hostname = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ghost.nixosModule
+          {
+            ghost = {
+              enable = true;
+            };
+          }
+        ];
+      };
+    };
+}
+
