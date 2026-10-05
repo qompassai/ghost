@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Backups disabled: credentials live in EncryptedSharedPreferences and
+  must never leave the device via Auto Backup.
+-->
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="false">
+    </cloud-backup>
+</data-extraction-rules>

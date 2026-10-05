@@ -1,0 +1,1 @@
+Tor-native email client for the Ghost secure transmission protocol

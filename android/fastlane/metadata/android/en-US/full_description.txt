@@ -1,0 +1,14 @@
+Ghost is the Android client for the Qompass AI Ghost protocol: anonymous,
+Tor-only email on your own Ghost onion service.
+
+All traffic stays inside the Tor network. The app connects to your Ghost
+server's .onion address for IMAP and SMTP, so your IP address is never
+exposed to the mail server or to recipients' servers.
+
+Features in v1:
+- Tor bootstrap with progress, kept alive by a foreground service
+- IMAP inbox and SMTP send over Tor's SOCKS proxy
+- OpenPGP message encryption (Bouncy Castle)
+- Credentials in encrypted on-device storage; backups disabled
+
+No Google Play Services, no Firebase, no tracking. Fully open source.
