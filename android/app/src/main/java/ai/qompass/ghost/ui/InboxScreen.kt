@@ -24,11 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import ai.qompass.ghost.GhostApp
 import ai.qompass.ghost.account.AccountStore
 import ai.qompass.ghost.mail.MailClient
 import ai.qompass.ghost.pgp.PgpManager
+import ai.qompass.ghost.pgp.RecipientKeyStore
 import ai.qompass.ghost.tor.TorManager
 import java.text.DateFormat
 import java.util.Date
@@ -50,6 +52,8 @@ import kotlinx.coroutines.launch
 fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
     val scope = rememberCoroutineScope()
     val pgpManager = remember { PgpManager() }
+    val context = LocalContext.current
+    val keyStore = remember { RecipientKeyStore(context) }
     var messages by remember { mutableStateOf<List<MailClient.SyncedMessage>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -79,9 +83,11 @@ fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
 
     if (composing) {
         ComposeScreen(
-            onSend = { to, subject, body ->
+            pgpManager = pgpManager,
+            keyStore = keyStore,
+            onSend = { to, subject, armoredBody ->
                 scope.launch {
-                    runCatching { client()?.send(to, subject, body) }
+                    runCatching { client()?.send(to, subject, armoredBody) }
                         .onSuccess { composing = false; refresh() }
                         .onFailure { error = it.message ?: "send failed" }
                 }
