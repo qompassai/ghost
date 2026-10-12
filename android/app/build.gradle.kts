@@ -70,6 +70,8 @@ android {
 dependencies {
     // --- Tor (FOSS; no GMS) ---
     implementation("info.guardianproject:tor-android:0.4.9.6")
+    // Used directly by TorAndroidBridge for provider status broadcasts.
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
     // --- Email: IMAP/SMTP over Tor SOCKS (EPL/GPL+CE, FOSS) ---
     implementation("com.sun.mail:android-mail:1.6.7")
