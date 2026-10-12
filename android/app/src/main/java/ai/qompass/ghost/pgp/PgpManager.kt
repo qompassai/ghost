@@ -159,7 +159,7 @@ class PgpManager {
                     .setProvider(BouncyCastleProvider.PROVIDER_NAME)
                     .build(privateKey)
             )
-            val lit = JcaPGPObjectFactory(clear).nextObject() as? PGPLiteralData
+            val lit = readLiteralData(clear)
                 ?: throw PgpException(PgpError.DecryptFailed("no literal data"))
             val bytes = lit.inputStream.readBytes()
             require(bytes.size <= PLAINTEXT_BYTES_MAX) { "decrypted payload too large" }
@@ -173,10 +173,39 @@ class PgpManager {
         }
     }
 
+    /**
+     * First literal-data packet in a decrypted stream, unwrapping
+     * compression on the way.
+     *
+     * [encryptFor] compresses before encrypting — as do most PGP mail
+     * clients — so the first packet of a decrypted stream is normally
+     * [PGPCompressedData], not the literal data itself. At most
+     * [COMPRESSION_LAYERS_MAX] layers are unwrapped; anything else
+     * yields null and the caller fails the decrypt.
+     */
+    private fun readLiteralData(clear: InputStream): PGPLiteralData? {
+        var factory = JcaPGPObjectFactory(clear)
+        var layers = 0
+        while (true) {
+            val next = factory.nextObject() ?: return null
+            when (next) {
+                is PGPLiteralData -> return next
+                is PGPCompressedData -> {
+                    layers++
+                    if (layers > COMPRESSION_LAYERS_MAX) return null
+                    factory = JcaPGPObjectFactory(next.dataStream)
+                }
+                else -> return null
+            }
+        }
+    }
+
     companion object {
         /** 1 MiB cap per message payload; bounds memory on low-end devices. */
         const val PLAINTEXT_BYTES_MAX = 1 shl 20
         private const val BUFFER_BYTES = 1 shl 16
+        /** Compression layers [decryptWith] will unwrap; ours emits one. */
+        private const val COMPRESSION_LAYERS_MAX = 2
     }
 }
 

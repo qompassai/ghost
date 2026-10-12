@@ -28,8 +28,11 @@ import kotlinx.coroutines.withTimeout
  * - IMAP on 993 (SSL/TLS); SMTP on 465 (SSL/TLS). AUTH PLAIN/LOGIN.
  * - Each operation is bounded by [OP_TIMEOUT_MS]; blocking I/O stays on
  *   Dispatchers.IO.
- * - [MessageSummary] is a bounded snapshot: at most [INBOX_FETCH_MAX]
- *   messages, bodies truncated to [BODY_PREVIEW_CHARS].
+ * - A sync ([fetchInbox]) returns at most [INBOX_FETCH_MAX] messages.
+ *   Each [SyncedMessage] pairs a bounded [MessageSummary] (preview
+ *   truncated to [BODY_PREVIEW_CHARS]) with the message body extracted
+ *   locally by [MessageBodyExtractor]; the reader renders synced state
+ *   only and never triggers fetches of its own.
  */
 class MailClient(
     private val onionHost: String,
@@ -50,6 +53,16 @@ class MailClient(
         val subject: String,
         val dateMs: Long,
         val preview: String,
+    )
+
+    /**
+     * One synced message: the list [summary] plus its extracted [body],
+     * held in memory by the caller. Process death drops synced state;
+     * the next sync re-fetches. Nothing here touches disk.
+     */
+    data class SyncedMessage(
+        val summary: MessageSummary,
+        val body: MessageBody,
     )
 
     private fun session(): Session {
@@ -95,8 +108,14 @@ class MailClient(
         ): Socket = createSocket(address.hostAddress, port)
     }
 
-    /** Fetch the newest inbox summaries, newest first. */
-    suspend fun fetchInbox(): List<MessageSummary> = withContext(Dispatchers.IO) {
+    /**
+     * Sync the newest inbox messages, newest first.
+     *
+     * Bodies are downloaded and extracted here, at sync time, so the
+     * reader works purely from local state afterwards. Extraction is
+     * bounded by [MessageBodyExtractor]'s caps.
+     */
+    suspend fun fetchInbox(): List<SyncedMessage> = withContext(Dispatchers.IO) {
         withTimeout(OP_TIMEOUT_MS) {
             val session = session()
             val store: Store = session.getStore("imaps")
@@ -109,7 +128,13 @@ class MailClient(
                     val start = maxOf(1, total - INBOX_FETCH_MAX + 1)
                     inbox.getMessages(start, total)
                         .reversed()
-                        .map { it.toSummary() }
+                        .map { msg ->
+                            val body = MessageBodyExtractor.extract(msg)
+                            SyncedMessage(
+                                summary = msg.toSummary(body),
+                                body = body,
+                            )
+                        }
                 } finally {
                     inbox.close(false)
                 }
@@ -140,10 +165,15 @@ class MailClient(
         }
     }
 
-    private fun Message.toSummary(): MessageSummary {
-        val preview = runCatching {
-            (content as? String)?.take(BODY_PREVIEW_CHARS) ?: ""
-        }.getOrDefault("")
+    private fun Message.toSummary(body: MessageBody): MessageSummary {
+        val preview = when {
+            body.pgpCiphertext != null -> PGP_PREVIEW
+            else -> body.plainText
+                ?.replace(WHITESPACE_RUN, " ")
+                ?.trim()
+                ?.take(BODY_PREVIEW_CHARS)
+                ?: ""
+        }
         return MessageSummary(
             uid = messageNumber.toLong(),
             from = from?.firstOrNull()?.toString() ?: "",
@@ -159,6 +189,9 @@ class MailClient(
         /** Newest N messages per inbox fetch; bounds memory and Tor traffic. */
         const val INBOX_FETCH_MAX = 50
         const val BODY_PREVIEW_CHARS = 280
+        /** List preview shown for a PGP-encrypted body. */
+        const val PGP_PREVIEW = "(PGP-encrypted message)"
+        private val WHITESPACE_RUN = Regex("\\s+")
         const val OP_TIMEOUT_MS = 60_000L
         const val CONNECT_TIMEOUT_MS = 30_000
     }

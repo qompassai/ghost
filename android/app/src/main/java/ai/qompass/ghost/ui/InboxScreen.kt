@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import ai.qompass.ghost.GhostApp
 import ai.qompass.ghost.account.AccountStore
 import ai.qompass.ghost.mail.MailClient
+import ai.qompass.ghost.pgp.PgpManager
 import ai.qompass.ghost.tor.TorManager
 import java.text.DateFormat
 import java.util.Date
@@ -39,6 +40,8 @@ import kotlinx.coroutines.launch
  * Contract:
  * - Fetches once per composition entry and on manual refresh; no
  *   background polling in v1 (foreground service arrives with push).
+ * - Tapping a message opens [MessageReaderScreen] over the synced
+ *   state held here; the reader itself never fetches.
  * - Failures surface as text, never crash; the list keeps its last
  *   good state.
  */
@@ -46,10 +49,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
     val scope = rememberCoroutineScope()
-    var messages by remember { mutableStateOf<List<MailClient.MessageSummary>>(emptyList()) }
+    val pgpManager = remember { PgpManager() }
+    var messages by remember { mutableStateOf<List<MailClient.SyncedMessage>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var composing by remember { mutableStateOf(false) }
+    var reading by remember { mutableStateOf<MailClient.SyncedMessage?>(null) }
 
     fun client(): MailClient? {
         val creds = accountStore.credentials() ?: return null
@@ -86,6 +91,15 @@ fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
         return
     }
 
+    reading?.let { selected ->
+        MessageReaderScreen(
+            message = selected,
+            pgpManager = pgpManager,
+            onBack = { reading = null }
+        )
+        return
+    }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Ghost Inbox") }) },
         floatingActionButton = {
@@ -108,11 +122,12 @@ fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
                 CircularProgressIndicator(modifier = Modifier.padding(16.dp))
             } else {
                 LazyColumn {
-                    items(messages, key = { it.uid }) { msg ->
+                    items(messages, key = { it.summary.uid }) { synced ->
+                        val msg = synced.summary
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { /* v1: no reader; preview only */ }
+                                .clickable { reading = synced }
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
@@ -129,7 +144,7 @@ fun InboxScreen(torManager: TorManager, accountStore: AccountStore) {
                                 style = MaterialTheme.typography.labelSmall
                             )
                         }
-                        Divider()
+                        HorizontalDivider()
                     }
                 }
             }

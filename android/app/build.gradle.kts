@@ -19,6 +19,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -93,6 +95,14 @@ dependencies {
 
     // --- Coroutines: structured concurrency, no GlobalScope ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    // --- JVM unit tests: seeded-mail body extraction + decrypt flow ---
+    testImplementation("junit:junit:4.13.2")
+
+    // --- Instrumented tests: the reader screen on a real Android runtime ---
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
