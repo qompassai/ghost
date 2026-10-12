@@ -1,0 +1,51 @@
+# DRAFT fdroiddata recipe for Ghost — prepared in-repo, NOT submitted.
+#
+# Destination when Matt submits: the fdroiddata repository, as
+#   metadata/ai.qompass.ghost.yml
+# Known gaps before a submission can succeed (Matt's steps, not code):
+#   - phone screenshots under android/fastlane/metadata/android/en-US/images/
+#   - a release tag on the repo for UpdateCheckMode: Tags
+#   - signing/account steps for Google Play (scripts/publish/keystore.sh)
+#
+# The applicationId (ai.qompass.ghost) matches app/build.gradle.kts and
+# the fastlane metadata already in android/fastlane/.
+
+Categories:
+  - Internet
+  - Security
+
+# Ghost is AGPL-3.0 (LICENSE-AGPL) with the Qompass dual-license scheme
+# recorded in LICENSE-QCDA; the F-Droid build is the AGPL one.
+License: AGPL-3.0-only
+
+AuthorName: Qompass AI
+SourceCode: https://github.com/qompassai/ghost
+IssueTracker: https://github.com/qompassai/ghost/issues
+
+AutoName: Ghost
+
+Summary: Tor-native email with end-to-end OpenPGP encryption
+
+Description: |-
+  Ghost is a mail client for the Ghost mail server: IMAP and SMTP run
+  exclusively over Tor (no clearnet path exists in the code), and
+  messages are OpenPGP-encrypted end to end — the composer refuses to
+  send plaintext. Full description lives in the fastlane metadata at
+  android/fastlane/metadata/android/en-US/full_description.txt.
+
+RepoType: git
+Repo: https://github.com/qompassai/ghost
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 1
+    commit: dd494e0173bf5f53350815f535aa8a7f18b49d3f
+    subdir: android/app
+    gradle:
+      - yes
+    output: build/outputs/apk/release/app-release-unsigned.apk
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '1.0'
+CurrentVersionCode: 1
