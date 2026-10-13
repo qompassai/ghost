@@ -31,6 +31,7 @@ let
     in
     mergeLookupTables lookupTables;
   extra_valiases_postfix = attrsToLookupTable cfg.extraVirtualAliases;
+  extra_sender_logins_postfix = attrsToLookupTable cfg.extraSenderLogins;
   forwards = attrsToLookupTable cfg.forwards;
   lookupTableToString = attrs:
     let valueToString = value: lib.concatStringsSep ", " value;
@@ -67,8 +68,13 @@ let
   # for details on how this file looks. By using the same file as valiases,
   # every alias is owned (uniquely) by its user.
   # The user's own address is already in all_valiases_postfix.
+  # cfg.extraSenderLogins additionally grants sender identities to
+  # logins that do not own them as aliases (e.g. an automation
+  # credential submitting as a shared address); it extends only this
+  # sender-login table, never the receiving alias table.
   vaccounts_file =
-    builtins.toFile "vaccounts" (lookupTableToString all_valiases_postfix);
+    builtins.toFile "vaccounts" (lookupTableToString
+      (mergeLookupTables [ all_valiases_postfix extra_sender_logins_postfix ]));
   regex_vaccounts_file = builtins.toFile "regex_vaccounts"
     (lookupTableToString regex_valiases_postfix);
   submissionHeaderCleanupRules =

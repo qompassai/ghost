@@ -4,7 +4,12 @@
 ####################################################
 { config, pkgs, lib, ... }:
 let
-  xdgRuntime = ["$XDG_RUNTIME_DIR"];
+  # Socket paths below live under the systemd runtime directories
+  # of the respective services (cf. the /run/rspamd milter path in
+  # postfix.nix). This was a list holding an unexpanded
+  # "$XDG_RUNTIME_DIR" string, which failed evaluation outright
+  # (cannot coerce a list to a string).
+  xdgRuntime = "/run";
   cfg = config.ghost;
   postfixCfg = config.services.postfix;
   rspamdCfg = config.services.rspamd;
