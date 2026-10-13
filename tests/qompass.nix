@@ -20,6 +20,10 @@
 #   - the human login cannot submit as another account's address
 #   - the automation login cannot submit as security@
 #   - unauthenticated submission is refused
+#
+# Port note: this fork remaps the Dovecot client ports
+# (IMAP 1143, IMAP-SSL 1993, POP3 1110/1995 — see
+# ghost/dovecot.nix); Postfix submission stays on 587.
 { pkgs, lib, ... }:
 let
   hashPassword =
@@ -90,7 +94,7 @@ let
     ctx = ssl._create_unverified_context()
     for _ in range(20):
         try:
-            with imaplib.IMAP4_SSL("localhost", 993, ssl_context=ctx) as imap:
+            with imaplib.IMAP4_SSL("localhost", 1993, ssl_context=ctx) as imap:
                 imap.login(a.user, password)
                 imap.select("INBOX")
                 status, data = imap.search(None, "SUBJECT", '"%s"' % a.subject)
@@ -153,7 +157,7 @@ in
     machine.wait_for_unit("multi-user.target")
     machine.wait_for_open_port(25)
     machine.wait_for_open_port(587)
-    machine.wait_for_open_port(993)
+    machine.wait_for_open_port(1993)
 
     # --- Validation: alias expansion (security@ -> map@) ---
     machine.succeed(
