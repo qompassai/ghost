@@ -47,7 +47,7 @@
             PrivateDevices = "yes";
           };
         };
-        mailserver = {
+        ghost = {
           enable = true;
           fqdn = "mail.example.com";
           domains = [
