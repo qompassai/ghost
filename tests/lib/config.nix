@@ -7,7 +7,6 @@
   ...
 }:
 {
-  mailserver.stateVersion = 999;
   virtualisation.cores = lib.mkDefault 2;
   services.rspamd.locals."options.inc".text = ''
     dns {

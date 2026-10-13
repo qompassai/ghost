@@ -45,7 +45,7 @@
           pkgs = nixpkgs-25_05.legacyPackages.${system};
         }
       ];
-      testNames = [ "clamav" "external" "internal" "ldap" "multiple" ];
+      testNames = [ "clamav" "external" "internal" "ldap" "multi" "qompass" ];
       genTest = testName: release:
         let
           pkgsR = release.pkgs;
