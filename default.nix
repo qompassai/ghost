@@ -459,6 +459,22 @@ in
       '';
       default = { };
     };
+    extraSenderLogins = mkOption {
+      type = with types; attrsOf (either str (listOf str));
+      example = {
+        "map@example.com" = "automation@example.com";
+      };
+      description = ''
+        Additional login accounts that may send mail from an address
+        they do not own as a mailbox or alias. This extends the
+        sender-login ownership table (Postfix
+        `smtpd_sender_login_maps`) WITHOUT creating a virtual alias:
+        mail addressed to the address is not delivered to the listed
+        accounts. Intended for automation credentials that must submit
+        as exactly one shared identity.
+      '';
+      default = { };
+    };
     forwards = mkOption {
       type = with types; attrsOf (either (listOf str) str);
       example = { "user@example.com" = "user@elsewhere.com"; };
@@ -519,7 +535,7 @@ in
     };
     mailDirectory = mkOption {
       type = types.str;
-      default = "$XDG_DATA_HOME/mail";
+      default = "/var/vmail";
       description = ''
         Rootless/XDG: Where to store mail. Default: $XDG_DATA_HOME/mail (or ~/.local/share/mail if unset).
         Must be user-writable and per-user for rootless configs.
@@ -640,7 +656,7 @@ in
     };
     certificateDirectory = mkOption {
       type = types.path;
-      default = "$HOME/.local/share/ghost/certs";
+      default = "/var/lib/ghost/certs";
       description = ''
         (`ghost.certificateScheme == "selfsigned"`)
 
@@ -722,7 +738,7 @@ in
     };
     sieveDirectory = mkOption {
       type = types.str;
-      default = "$HOME/.local/share/sieve";
+      default = "/var/sieve";
       description = ''
         Where to store Sieve scripts.
         **Rootless/XDG default:** $XDG_DATA_HOME/sieve
