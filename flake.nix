@@ -29,7 +29,7 @@
     , flake-utils
     , ...
     }:
-    flake-utils.lib.eachDefaultSystem (system:
+    (flake-utils.lib.eachDefaultSystem (system:
     let
       lib = nixpkgs.lib;
       pkgs = nixpkgs.legacyPackages.${system};
@@ -253,9 +253,25 @@
           systemctl --user stop rspamd || true
         '';
       };
+    }) // {
+      # Stage 0 (additive, 2026-10-17): the separate qompass.ai mail
+      # instance, composed from the pinned 25.05 line per the cutover
+      # packet. Evaluation only until Stage 1 provisioning; see
+      # hosts/mail/configuration.nix. The Ghost module and the
+      # production policy (examples/qompass-ai.nix) are imported
+      # unchanged -- this output only composes them into a host.
+      nixosConfigurations.mail = nixpkgs-25_05.lib.nixosSystem {
+        # Instance architecture is decided when the instance is
+        # created (Stage 0/1). If it lands on Ampere A1, change this
+        # one string to "aarch64-linux".
+        system = "x86_64-linux";
+        specialArgs = { inherit blobs; };
+        modules = [
+          (import ./.)
+          sops-nix.nixosModules.sops
+          ./examples/qompass-ai.nix
+          ./hosts/mail/configuration.nix
+        ];
+      };
     });
 }
-
-
-
-
