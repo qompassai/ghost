@@ -1,6 +1,6 @@
 # 2026-10-11 — Layer 2 landed: Tor bridge wired, PGP compose end to end, publish prep
 
-Overnight campaign pass (authorized by Matt 2026-10-11 23:46 PDT).
+Overnight campaign pass (authorized by Owner 2026-10-11 23:46 PDT).
 
 ## Tor (Layer 2)
 
@@ -35,11 +35,11 @@ Overnight campaign pass (authorized by Matt 2026-10-11 23:46 PDT).
 
 - targetSdk 35 → 36 (compileSdk already 36).
 - `android/fdroid-recipe.draft.yml`: fdroiddata-format draft; gaps are
-  screenshots, a release tag, and the submission itself (Matt's steps).
+  screenshots, a release tag, and the submission itself (Owner's steps).
 - `scripts/publish/keystore.sh` (Tiger Style bash, shellcheck/shfmt
   clean): generates the Play signing keystore into
   $XDG_DATA_HOME/keystores/ghost/ (dir created on primo, mode 700).
-  Dry-run executed and recorded 2026-10-11; the real run is Matt's —
+  Dry-run executed and recorded 2026-10-11; the real run is Owner's —
   agents do not mint signing keys.
 
 ## Gates (primo, 2026-10-11 night)
